@@ -1,8 +1,9 @@
 // Simulation configuration
 const individualSize = 50; // Number of genes in each individual
 const populationSize = 500; // Number of individuals in the population (remains constant throughout)
-const iterations = 100; // Number of times to evolve the population
 const graphHeight = 15; // Height of the average fitness graph in the console - set to `null` to disable
+const haltRange = 0.01; // How close the output must be to the desired output in order to halt
+const haltHistory = 20; // How many previous values are checked against the haltRange before halting
 
 // NN configuration
 const keepFraction = 0.1; // Fraction of each population to keep (rest is discarded)
@@ -27,10 +28,10 @@ const startingIndividuals = Array(populationSize)
 const net = new NeuralNetwork({
   target: Array(individualSize).fill(1),
   population: startingIndividuals,
-  keepFraction: keepFraction,
-  mutateFraction: mutateFraction,
-  haltRange: 0.001,
-  haltHistory: 20
+  keepFraction,
+  mutateFraction,
+  haltRange,
+  haltHistory,
 });
 
 let fitnessLevels = [];
