@@ -1,5 +1,5 @@
 // Simulation configuration
-const individualSize = 500; // Number of genes in each individual
+const individualSize = 50; // Number of genes in each individual
 const populationSize = 500; // Number of individuals in the population (remains constant throughout)
 const iterations = 100; // Number of times to evolve the population
 const graphHeight = 15; // Height of the average fitness graph in the console - set to `null` to disable
