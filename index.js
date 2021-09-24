@@ -29,11 +29,13 @@ const net = new NeuralNetwork({
   population: startingIndividuals,
   keepFraction: keepFraction,
   mutateFraction: mutateFraction,
+  haltRange: 0.001,
+  haltHistory: 20
 });
 
 let fitnessLevels = [];
 
-for (i = 0; i < iterations; i++) {
+while (net.changing) {
   fitnessLevels.push(net.averageFitness / individualSize);
   net.evolve();
 }

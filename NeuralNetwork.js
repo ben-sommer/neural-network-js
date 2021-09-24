@@ -1,5 +1,5 @@
 const NeuralNetwork = class {
-  constructor({ target, population, keepFraction, mutateFraction }) {
+  constructor({ target, population, keepFraction, mutateFraction, haltRange, haltHistory }) {
     if (population.length == 0) {
       throw new Error("Population must have individuals");
     }
@@ -22,6 +22,10 @@ const NeuralNetwork = class {
     }
     this._keepFraction = keepFraction || 0;
     this._mutateFraction = mutateFraction || 0;
+
+    this._changing = [];
+    this._haltRange = haltRange;
+    this._haltHistory = haltHistory;
   }
 
   evolve() {
@@ -48,6 +52,10 @@ const NeuralNetwork = class {
     const newPopulation = [...fitIndividuals, ...crosses, ...randoms];
 
     this._population = newPopulation;
+
+    const averageFitness = this.averageFitness;
+
+    this._addToChanging(averageFitness / this.individualSize);
   }
 
   get averageFitness() {
@@ -75,6 +83,14 @@ const NeuralNetwork = class {
     return this._population;
   }
 
+  get changing() {
+    if (this._changing.length != this._haltHistory) return true;
+    const range =
+      Number(Math.max(...this._changing) - Math.min(...this._changing)) || 0;
+    const changing = range > this._haltRange;
+    return changing;
+  }
+
   _calculateFitnessIndividual({ individual, target }) {
     if (individual.length != target.length) return 0;
 
@@ -92,7 +108,10 @@ const NeuralNetwork = class {
     const averageFitness =
       population
         .map((individual) =>
-          this._calculateFitnessIndividual({ individual, target })
+          this._calculateFitnessIndividual({
+            individual,
+            target,
+          })
         )
         .reduce((a, b) => a + b) / population.length;
 
@@ -102,9 +121,15 @@ const NeuralNetwork = class {
   _selectFitIndividuals({ population, count, target }) {
     const fitnessLevels = population
       .map((individual) =>
-        this._calculateFitnessIndividual({ individual, target })
+        this._calculateFitnessIndividual({
+          individual,
+          target,
+        })
       )
-      .map((fitness, index) => ({ genes: population[index], fitness }))
+      .map((fitness, index) => ({
+        genes: population[index],
+        fitness,
+      }))
       .sort((a, b) => b.fitness - a.fitness)
       .map((individual) => individual.genes);
 
@@ -115,7 +140,10 @@ const NeuralNetwork = class {
 
   _crossover({ individualA, individualB }) {
     if (individualA.length != individualB.length)
-      return { individualA, individualB };
+      return {
+        individualA,
+        individualB,
+      };
 
     const crossoverPoint = Math.floor(Math.random() * individualA.length);
 
@@ -129,14 +157,20 @@ const NeuralNetwork = class {
       ...individualA.slice(crossoverPoint),
     ];
 
-    return { newA, newB };
+    return {
+      newA,
+      newB,
+    };
   }
 
   _generateCrossOver(population) {
     const a = population[Math.floor(Math.random() * population.length)];
     const b = population[Math.floor(Math.random() * population.length)];
 
-    const cross = this._crossover({ individualA: a, individualB: b });
+    const cross = this._crossover({
+      individualA: a,
+      individualB: b,
+    });
 
     return cross.newA;
   }
@@ -176,6 +210,13 @@ const NeuralNetwork = class {
 
     return toMutate;
   }
+
+  _addToChanging(num) {
+    this._changing.push(num);
+    if (this._changing.length > this._haltHistory) this._changing.shift();
+  }
 };
 
-module.exports = { NeuralNetwork };
+module.exports = {
+  NeuralNetwork,
+};
